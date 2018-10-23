@@ -1,7 +1,3 @@
-Database
-
-* Use the maps.sql file to create a postgresql database named maps with table Data
-
 From the project directory
 
 * Install pipenv `pip install --user pipenv`

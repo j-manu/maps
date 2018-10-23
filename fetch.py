@@ -3,8 +3,6 @@ import time
 import googlemaps
 import csv
 
-from maps import Data
-
 KEY=''
 gmaps = googlemaps.Client(key=KEY)
 
@@ -18,6 +16,12 @@ total_measurements = 25
 travel_modes = ['driving', 'transit']
 transit_modes = ['bus', 'rail']
 
+with open('results.csv', 'w') as f:
+  w = csv.writer(f)
+  w.writerow(['departure_time', 'start_address', 'end_address', 'mode', 'transit_mode',
+              'distance_in_metres', 'time_in_seconds'])
+
+
 def fetch_and_save_result(origin, destination, departure_time, travel_mode, transit_mode=None):
   directions_result = gmaps.directions(origin,
                                       destination,
@@ -26,16 +30,10 @@ def fetch_and_save_result(origin, destination, departure_time, travel_mode, tran
                                       departure_time=departure_time)
   row = {}
   leg = directions_result[0]['legs'][0]
-  row['start_address'] = leg['start_address']
-  row['end_address'] = leg['end_address']
-  row['mode'] = travel_mode
-  row['transit_mode'] = transit_mode
-  row['distance_in_metres'] = leg['distance']['value']
-  row['time_in_seconds'] = leg['duration']['value']
-  row['steps'] = leg['steps']
-  row['departure_time'] = departure_time
-  row['full_result'] = leg
-  Data.create(**row)
+  with open('results.csv', 'a') as f:
+    w = csv.writer(f)
+    w.writerow([departure_time, leg['start_address'], leg['end_address'],
+                 travel_mode, transit_mode, leg['distance']['value'], leg['duration']['value']])
 
 with open('places.txt') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=':')
@@ -43,7 +41,6 @@ with open('places.txt') as csv_file:
       for day in range(days):
         for i in range(total_measurements):
           date_time = start_date_time + datetime.timedelta(days=day) + timegap * i
-          #departure_time = (date_time.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds()
           for travel_mode in travel_modes:
             if travel_mode == 'transit':
               for transit_mode in transit_modes:
